@@ -12,11 +12,14 @@ export function AssetCard({ asset, onClick }: { asset: Asset; onClick: () => voi
   const url = assetDownloadUrl(asset.id);
   const [hovering, setHovering] = useState(false);
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
-      className="group relative aspect-square overflow-hidden rounded-md border bg-muted text-left w-full"
+      className="group relative aspect-square overflow-hidden rounded-md border bg-muted text-left w-full cursor-pointer"
     >
       {asset.type === "IMAGE" ? (
         <img
@@ -50,6 +53,6 @@ export function AssetCard({ asset, onClick }: { asset: Asset; onClick: () => voi
       <div className="absolute top-1 right-1">
         {asset.validation_status && <StatusBadge status={asset.validation_status} className="text-xs py-0" />}
       </div>
-    </button>
+    </div>
   );
 }
