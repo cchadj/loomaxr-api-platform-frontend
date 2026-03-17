@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useJobs, useCancelJob } from "@/hooks/use-jobs";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -15,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BriefcaseBusiness } from "lucide-react";
-import { LinkButton } from "@/components/ui/link-button";
 import type { Job } from "@/types/api";
 import { formatDuration, shortId } from "@/lib/utils-app";
 import { toast } from "sonner";
@@ -40,6 +40,7 @@ function ElapsedTimer({ startTime }: { startTime?: string }) {
 }
 
 export default function JobsPage() {
+  const router = useRouter();
   const { hasRole } = useAuth();
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
@@ -128,8 +129,8 @@ export default function JobsPage() {
             </thead>
             <tbody>
               {filtered.map((job) => (
-                <tr key={job.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="px-3 py-2">
+                <tr key={job.id} className="border-b last:border-0 hover:bg-muted/30 cursor-pointer" onClick={() => router.push(`/jobs/${job.id}`)}>
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1">
                       <Link href={`/jobs/${job.id}`} className="font-mono text-xs hover:underline">
                         {shortId(job.id)}
@@ -137,7 +138,7 @@ export default function JobsPage() {
                       <CopyButton value={job.id} />
                     </div>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <Link href={`/workflows/${job.workflow_id}`} className="hover:underline">
                       {job.workflow_name ?? shortId(job.workflow_id)}
                     </Link>
@@ -165,15 +166,12 @@ export default function JobsPage() {
                       <Badge variant="outline" className="text-xs">{job.asset_count}</Badge>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2 text-right">
-                    <div className="flex justify-end gap-1">
-                      {ACTIVE_STATUSES.includes(job.status) && (
-                        <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setCancelTarget(job)}>
-                          Cancel
-                        </Button>
-                      )}
-                      <LinkButton href={`/jobs/${job.id}`} size="sm" variant="ghost" className="h-6 text-xs">View</LinkButton>
-                    </div>
+                  <td className="px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+                    {ACTIVE_STATUSES.includes(job.status) && (
+                      <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setCancelTarget(job)}>
+                        Cancel
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}

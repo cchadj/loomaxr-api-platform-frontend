@@ -34,9 +34,12 @@ const TYPE_TABS: { value: string; label: string; icon: typeof Images }[] = [
 function AssetListRow({ asset, onClick }: { asset: Asset; onClick: () => void }) {
   const url = assetDownloadUrl(asset.id);
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="group flex w-full items-center gap-3 rounded-md border bg-background p-3 text-left hover:bg-muted/50 transition-colors"
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
+      className="group flex w-full items-center gap-3 rounded-md border bg-background p-3 text-left hover:bg-muted/50 transition-colors cursor-pointer"
     >
       <div className="h-10 w-10 shrink-0 overflow-hidden rounded border bg-muted">
         {asset.type === "IMAGE" ? (
@@ -60,7 +63,7 @@ function AssetListRow({ asset, onClick }: { asset: Asset; onClick: () => void })
         {asset.validation_status && <StatusBadge status={asset.validation_status} />}
         {asset.created_at && <RelativeTime value={asset.created_at} />}
       </div>
-    </button>
+    </div>
   );
 }
 

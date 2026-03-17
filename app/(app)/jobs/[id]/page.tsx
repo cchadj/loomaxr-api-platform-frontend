@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useJob, useCancelJob, useCreateJob } from "@/hooks/use-jobs";
@@ -54,6 +55,7 @@ function JobTimeline({ job }: { job: ReturnType<typeof useJob>["data"] }) {
 
 export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { hasRole } = useAuth();
   const queryClient = useQueryClient();
   const { data: job, isLoading, error } = useJob(id);
@@ -98,7 +100,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         params,
       });
       toast.success("Job requeued");
-      window.location.href = `/jobs/${newJob.id}`;
+      router.push(`/jobs/${newJob.id}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to rerun");
     }

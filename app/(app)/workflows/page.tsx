@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -52,6 +53,7 @@ export default function WorkflowsPage() {
   const deleteMutation = useDeleteWorkflow();
   const duplicateMutation = useDuplicateWorkflow();
 
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<WorkflowType | null>(null);
   const [dupTarget, setDupTarget] = useState<WorkflowType | null>(null);
@@ -139,11 +141,9 @@ export default function WorkflowsPage() {
             </thead>
             <tbody>
               {filtered.map((w) => (
-                <tr key={w.id} className="border-b last:border-0 hover:bg-muted/30">
-                  <td className="px-3 py-2">
-                    <Link href={`/workflows/${w.id}`} className="font-medium hover:underline">{w.name}</Link>
-                  </td>
-                  <td className="px-3 py-2">
+                <tr key={w.id} className="border-b last:border-0 hover:bg-muted/30 cursor-pointer" onClick={() => router.push(`/workflows/${w.id}`)}>
+                  <td className="px-3 py-2 font-medium">{w.name}</td>
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1">
                       <code className="font-mono text-xs">{w.key}</code>
                       <CopyButton value={w.key} />
@@ -157,7 +157,7 @@ export default function WorkflowsPage() {
                   <td className="px-3 py-2 text-muted-foreground">{w.author ?? shortId(w.author_id ?? "")}</td>
                   <td className="px-3 py-2"><WorkflowStatusBadge workflowId={w.id} /></td>
                   <td className="px-3 py-2"><RelativeTime value={w.created_at} /></td>
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
                       {hasRole("JOB_CREATOR") && (
                         <Button
@@ -184,9 +184,6 @@ export default function WorkflowsPage() {
                           <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => window.location.href = `/workflows/${w.id}`}>
-                            View details
-                          </DropdownMenuItem>
                           {hasRole("WORKFLOW_CREATOR") && (
                             <DropdownMenuItem onClick={() => openDuplicate(w)}>
                               <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
