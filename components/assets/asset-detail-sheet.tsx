@@ -98,7 +98,7 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-xl overflow-y-auto px-8">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Badge variant="outline">{asset.type}</Badge>
