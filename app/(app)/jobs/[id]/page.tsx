@@ -196,12 +196,12 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       </div>
 
       {/* Assets — full-width below both cards */}
-      {(job.status === "GENERATED" || jobAssets.length > 0) && (
+      {(isActive || job.status === "GENERATED" || jobAssets.length > 0) && (
         <div className="mt-6">
           <h2 className="mb-3 text-sm font-semibold">Generated Assets</h2>
           <AssetGrid
             assets={jobAssets}
-            loading={job.status === "GENERATED" && jobAssets.length === 0}
+            loading={isActive || (job.status === "GENERATED" && jobAssets.length === 0)}
           />
         </div>
       )}
