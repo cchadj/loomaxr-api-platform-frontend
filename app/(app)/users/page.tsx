@@ -74,7 +74,7 @@ function UserAssetsTab({ userId }: { userId: string }) {
 function UserDetailSheet({ user, open, onOpenChange }: { user: User; open: boolean; onOpenChange: (o: boolean) => void }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto px-8">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
