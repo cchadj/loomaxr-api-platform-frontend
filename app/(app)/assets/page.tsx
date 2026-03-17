@@ -19,6 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { Images, Music, Video, Box, File } from "lucide-react";
+import { AuthImage } from "@/components/ui/auth-image";
 import type { Asset } from "@/types/api";
 import { assetDownloadUrl, formatBytes, assetFilename } from "@/lib/utils-app";
 
@@ -43,7 +44,7 @@ function AssetListRow({ asset, onClick }: { asset: Asset; onClick: () => void })
     >
       <div className="h-10 w-10 shrink-0 overflow-hidden rounded border bg-muted">
         {asset.type === "IMAGE" || asset.thumbnail_url ? (
-          <img src={asset.type === "IMAGE" ? url : asset.thumbnail_url!} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <AuthImage src={asset.type === "IMAGE" ? url : asset.thumbnail_url!} alt="" className="h-full w-full object-cover" />
         ) : asset.type === "AUDIO" ? <Music className="h-full w-full p-2 text-muted-foreground" />
           : asset.type === "VIDEO" ? <Video className="h-full w-full p-2 text-muted-foreground" />
           : asset.type === "MESH" ? <Box className="h-full w-full p-2 text-muted-foreground" />

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Music, Video, Box, File } from "lucide-react";
+import { AuthImage } from "@/components/ui/auth-image";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { MeshGridPreview } from "@/components/assets/mesh-grid-preview";
@@ -22,11 +23,10 @@ export function AssetCard({ asset, onClick }: { asset: Asset; onClick: () => voi
       className="group relative aspect-square overflow-hidden rounded-md border bg-muted text-left w-full cursor-pointer"
     >
       {asset.type === "IMAGE" ? (
-        <img
+        <AuthImage
           src={url}
           alt={assetFilename(asset)}
           className="h-full w-full object-cover transition-transform group-hover:scale-105"
-          loading="lazy"
         />
       ) : (
         <div className="flex h-full flex-col items-center justify-center gap-1">

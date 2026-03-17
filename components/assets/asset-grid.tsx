@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Image as ImageIcon } from "lucide-react";
+import { AuthImage } from "@/components/ui/auth-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AssetDetailSheet } from "@/components/assets/asset-detail-sheet";
 import type { Asset } from "@/types/api";
@@ -53,11 +54,10 @@ export function AssetGrid({ assets, loading = false, selectedId, onSheetClose, o
             className="group relative aspect-square overflow-hidden rounded-md border bg-muted cursor-pointer"
           >
             {asset.type === "IMAGE" || asset.thumbnail_url ? (
-              <img
+              <AuthImage
                 src={asset.type === "IMAGE" ? assetDownloadUrl(asset.id) : asset.thumbnail_url!}
                 alt={asset.filename ?? "asset"}
                 className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                loading="lazy"
               />
             ) : (
               <div className="flex h-full flex-col items-center justify-center gap-1">

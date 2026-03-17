@@ -10,6 +10,7 @@ import { RelativeTime } from "@/components/shared/relative-time";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LinkButton } from "@/components/ui/link-button";
+import { AuthImage } from "@/components/ui/auth-image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { assetDownloadUrl } from "@/lib/utils-app";
 import {
@@ -171,11 +172,10 @@ export default function DashboardPage() {
             {recentAssets.map((asset) => (
               <Link key={asset.id} href={`/assets?selected=${asset.id}`} className="group relative aspect-square overflow-hidden rounded-md border bg-muted">
                 {asset.type === "IMAGE" ? (
-                  <img
+                  <AuthImage
                     src={assetDownloadUrl(asset.id)}
                     alt={asset.filename ?? "asset"}
                     className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    loading="lazy"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center">

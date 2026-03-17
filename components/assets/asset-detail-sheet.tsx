@@ -11,10 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelativeTime } from "@/components/shared/relative-time";
+import { AuthImage } from "@/components/ui/auth-image";
 import { Lightbox } from "@/components/shared/lightbox";
 import type { Asset, ValidationStatus } from "@/types/api";
 import { assetDownloadUrl, formatBytes, shortId, assetFilename } from "@/lib/utils-app";
-import { LinkButton } from "@/components/ui/link-button";
+import { AuthDownloadButton, LinkButton } from "@/components/ui/link-button";
 import { MeshViewer } from "@/components/assets/mesh-viewer";
 import { Download, Music, File, ExternalLink } from "lucide-react";
 
@@ -29,11 +30,10 @@ function ImagePreview({ asset }: { asset: Asset }) {
   const [lightbox, setLightbox] = useState(true);
   return (
     <>
-      <img
+      <AuthImage
         src={url}
         alt={asset.filename ?? "asset"}
         className="max-h-64 w-full object-contain rounded-md cursor-zoom-in"
-        loading="lazy"
         onClick={() => setLightbox(true)}
       />
       <Lightbox src={url} alt={asset.filename ?? undefined} open={lightbox} onOpenChange={setLightbox} />
@@ -122,9 +122,9 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
 
           {/* Download */}
           <div className="flex gap-2 flex-wrap">
-            <LinkButton href={downloadUrl} size="sm" download>
+            <AuthDownloadButton href={downloadUrl} filename={assetFilename(asset)} size="sm">
               <Download className="mr-1 h-3 w-3" /> Download
-            </LinkButton>
+            </AuthDownloadButton>
             {asset.is_public && asset.validation_status === "APPROVED" && (
               <LinkButton
                 href={`/api/public/assets/${asset.id}/download`}
