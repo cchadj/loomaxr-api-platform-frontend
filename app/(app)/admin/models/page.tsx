@@ -169,8 +169,14 @@ function WorkflowRequirementsPanel() {
       let polls = 0;
       const interval = setInterval(async () => {
         polls++;
-        await refetch();
-        if (polls > 40) {
+        const result = await refetch();
+        const req = result.data?.requirements.find((r) => r.id === reqId);
+        if (
+          req?.available ||
+          req?.download_status === "failed" ||
+          req?.download_status === "completed" ||
+          polls > 200
+        ) {
           clearInterval(interval);
           setDownloading((prev) => ({ ...prev, [reqId]: false }));
         }
@@ -248,17 +254,35 @@ function WorkflowRequirementsPanel() {
                     )}
                   </td>
                   <td className="px-3 py-2 text-right">
-                    {req.url_approved && !req.available && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-6 text-xs"
-                        disabled={downloading[req.id]}
-                        onClick={() => void handleDownload(req.id)}
-                      >
-                        {downloading[req.id] ? "Downloading…" : "Download"}
-                      </Button>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                      {req.url_approved && !req.available && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 text-xs"
+                          disabled={req.download_status === "pending" || req.download_status === "downloading"}
+                          onClick={() => void handleDownload(req.id)}
+                        >
+                          Download
+                        </Button>
+                      )}
+                      {(req.download_status === "pending" || req.download_status === "downloading") && (
+                        <div className="w-28 space-y-0.5">
+                          <div className="text-xs text-muted-foreground text-right">
+                            {req.download_status === "pending" ? "Queued…" : `${req.download_progress ?? 0}%`}
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-primary transition-all"
+                              style={{ width: `${req.download_progress ?? 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {req.download_status === "failed" && (
+                        <p className="text-xs text-red-600 max-w-28 text-right">Failed</p>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

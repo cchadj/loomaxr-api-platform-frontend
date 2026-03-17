@@ -75,13 +75,18 @@ function ModelRequirementsPanel({ workflowId }: { workflowId: string }) {
     try {
       await apiPost(`/api/admin/model-requirements/${reqId}/download`);
       toast.success("Download started");
-      // Poll every 3s for up to 2 min
+      // Poll every 3s until available or failed (up to ~10 min)
       let polls = 0;
       const interval = setInterval(async () => {
         polls++;
-        await refetch();
-        const req = data?.requirements.find((r) => r.id === reqId);
-        if (req?.available || polls > 40) {
+        const result = await refetch();
+        const req = result.data?.requirements.find((r) => r.id === reqId);
+        if (
+          req?.available ||
+          req?.download_status === "failed" ||
+          req?.download_status === "completed" ||
+          polls > 200
+        ) {
           clearInterval(interval);
           setDownloading((prev) => ({ ...prev, [reqId]: false }));
         }
@@ -99,7 +104,7 @@ function ModelRequirementsPanel({ workflowId }: { workflowId: string }) {
     <div className="space-y-3">
       {!data.all_available && (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          Missing models: {data.missing.join(", ")}
+          Missing models: {data.missing.map((r) => r.model_name).join(", ")}
         </div>
       )}
       {data.requirements.map((req) => (
@@ -153,13 +158,32 @@ function ModelRequirementsPanel({ workflowId }: { workflowId: string }) {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={downloading[req.id]}
+                  disabled={req.download_status === "pending" || req.download_status === "downloading"}
                   onClick={() => void handleDownload(req.id)}
                 >
-                  {downloading[req.id] ? "Downloading…" : "Download"}
+                  Download
                 </Button>
               )}
             </div>
+
+            {(req.download_status === "pending" || req.download_status === "downloading") && (
+              <div className="space-y-1">
+                <div className="text-xs text-muted-foreground">
+                  {req.download_status === "pending" ? "Queued…" : `Downloading… ${req.download_progress ?? 0}%`}
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${req.download_progress ?? 0}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {req.download_status === "failed" && (
+              <p className="text-xs text-red-600">Download failed: {req.download_error}</p>
+            )}
+
           </CardContent>
         </Card>
       ))}

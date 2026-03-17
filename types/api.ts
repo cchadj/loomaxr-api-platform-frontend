@@ -59,6 +59,9 @@ export interface WorkflowModelRequirement {
   approved_by_user_id?: string;
   approved_at?: string;
   available?: boolean;
+  download_status?: "pending" | "downloading" | "completed" | "failed";
+  download_progress?: number;
+  download_error?: string;
 }
 
 export interface Workflow {
@@ -77,7 +80,7 @@ export interface Workflow {
 export interface WorkflowRequirementsResponse {
   requirements: WorkflowModelRequirement[];
   all_available: boolean;
-  missing: string[];
+  missing: WorkflowModelRequirement[];
 }
 
 export interface CandidateInput {
