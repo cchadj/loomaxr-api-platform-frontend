@@ -4,6 +4,12 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useRouter } from "next/navigation";
 import type { User, DevModeInfo } from "@/types/api";
 import { apiGet, apiPost } from "@/lib/api";
+import {
+  clearAccessTokenCookie,
+  clearDevAuthCookies,
+  syncAccessTokenCookie,
+  syncDevAuthCookies,
+} from "@/lib/client-auth-cookies";
 
 interface AuthContextValue {
   user: User | null;
@@ -31,6 +37,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+      localStorage.removeItem("dev_mode");
+      localStorage.removeItem("dev_user_id");
+      localStorage.removeItem("dev_roles");
+      clearAccessTokenCookie();
+      clearDevAuthCookies();
       setUser(null);
       router.push("/login");
     }
@@ -55,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem("dev_mode", "true");
           localStorage.setItem("dev_user_id", dev.default_user_id);
           localStorage.setItem("dev_roles", roles.join(","));
+          clearAccessTokenCookie();
+          syncDevAuthCookies(dev.default_user_id, roles.join(","));
           // Synthesize user from dev defaults
           setUser({
             id: dev.default_user_id,
@@ -62,16 +75,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             roles,
           });
         } else {
+          setDevMode(false);
           localStorage.removeItem("dev_mode");
+          localStorage.removeItem("dev_user_id");
+          localStorage.removeItem("dev_roles");
+          clearDevAuthCookies();
           const token = localStorage.getItem("access_token");
           if (token) {
+            syncAccessTokenCookie(token);
             try {
               const me = await apiGet<User>("/api/auth/me");
               setUser(me);
             } catch {
               localStorage.removeItem("access_token");
               localStorage.removeItem("refresh_token");
+              clearAccessTokenCookie();
             }
+          } else {
+            clearAccessTokenCookie();
           }
         }
       } catch {
@@ -92,6 +113,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     localStorage.setItem("access_token", data.access_token);
     localStorage.setItem("refresh_token", data.refresh_token);
+    localStorage.removeItem("dev_mode");
+    localStorage.removeItem("dev_user_id");
+    localStorage.removeItem("dev_roles");
+    clearDevAuthCookies();
+    syncAccessTokenCookie(data.access_token, data.expires_in_seconds);
+    setDevMode(false);
     setUser(data.user);
   }, []);
 

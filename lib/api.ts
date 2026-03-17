@@ -1,5 +1,7 @@
 "use client";
 
+import { clearAccessTokenCookie, syncAccessTokenCookie } from "@/lib/client-auth-cookies";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export class AuthError extends Error {
@@ -38,6 +40,7 @@ async function refreshTokens(): Promise<string> {
   const data = await res.json();
   localStorage.setItem("access_token", data.access_token);
   localStorage.setItem("refresh_token", data.refresh_token);
+  syncAccessTokenCookie(data.access_token, data.expires_in_seconds);
   return data.access_token;
 }
 
@@ -97,6 +100,7 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
       }
       return retryRes;
     } catch {
+      clearAccessTokenCookie();
       window.dispatchEvent(new CustomEvent("auth:logout"));
       throw new AuthError();
     }

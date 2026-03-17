@@ -14,7 +14,7 @@ import { RelativeTime } from "@/components/shared/relative-time";
 import { useAuthBlobUrl } from "@/components/ui/auth-image";
 import { Lightbox } from "@/components/shared/lightbox";
 import type { Asset, ValidationStatus } from "@/types/api";
-import { assetDownloadUrl, formatBytes, shortId, assetFilename } from "@/lib/utils-app";
+import { assetDownloadUrl, assetMeshProxyUrl, formatBytes, shortId, assetFilename } from "@/lib/utils-app";
 import { AuthDownloadButton, LinkButton } from "@/components/ui/link-button";
 import { MeshViewer } from "@/components/assets/mesh-viewer";
 import { Download, Music, File, ExternalLink } from "lucide-react";
@@ -48,6 +48,7 @@ function ImagePreview({ asset }: { asset: Asset }) {
 
 function AssetPreview({ asset }: { asset: Asset }) {
   const url = assetDownloadUrl(asset.id);
+  const meshUrl = assetMeshProxyUrl(asset.id);
   switch (asset.type) {
     case "IMAGE":
       return <ImagePreview asset={asset} />;
@@ -64,7 +65,7 @@ function AssetPreview({ asset }: { asset: Asset }) {
     case "MESH":
       return (
         <MeshViewer
-          src={url}
+          src={meshUrl}
           alt={assetFilename(asset)}
           sizeBytes={asset.size_bytes}
           autoExpand
