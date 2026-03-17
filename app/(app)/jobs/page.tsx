@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useJobs, useCancelJob } from "@/hooks/use-jobs";
 import { useAuth } from "@/lib/auth";
@@ -24,13 +24,16 @@ const STATUS_TABS = ["ALL", "QUEUED", "RUNNING", "GENERATED", "FAILED", "CANCELL
 const ACTIVE_STATUSES = ["QUEUED", "SUBMITTED", "RUNNING"];
 
 function ElapsedTimer({ startTime }: { startTime?: string }) {
-  const [, rerender] = useState(0);
-  // Simple approach: force re-render every second
-  if (typeof window !== "undefined") {
-    setTimeout(() => rerender((n) => n + 1), 1000);
-  }
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!startTime) return;
+    const start = new Date(startTime).getTime();
+    const update = () => setElapsed(Math.floor((Date.now() - start) / 1000));
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [startTime]);
   if (!startTime) return null;
-  const elapsed = Math.floor((Date.now() - new Date(startTime).getTime()) / 1000);
   const m = Math.floor(elapsed / 60);
   const s = elapsed % 60;
   return <span className="text-xs text-muted-foreground tabular-nums">{m}m {s}s</span>;

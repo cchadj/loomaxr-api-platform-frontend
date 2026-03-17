@@ -1,8 +1,9 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { useJob, useCancelJob, useCreateJob } from "@/hooks/use-jobs";
 import { useAssets } from "@/hooks/use-assets";
 import { useAuth } from "@/lib/auth";
@@ -16,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 import { assetDownloadUrl, formatBytes, formatDuration, shortId } from "@/lib/utils-app";
 import type { Asset } from "@/types/api";
 
@@ -56,8 +57,9 @@ function JobTimeline({ job }: { job: ReturnType<typeof useJob>["data"] }) {
 export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { hasRole } = useAuth();
+  const queryClient = useQueryClient();
   const { data: job, isLoading, error } = useJob(id);
-  const { data: assets } = useAssets();
+  const { data: assets } = useAssets({ mine: false });
   const cancelMutation = useCancelJob();
   const createJobMutation = useCreateJob();
 
@@ -66,6 +68,16 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
   const jobAssets = (assets ?? []).filter((a) => a.job_id === id);
   const isActive = job && ACTIVE_STATUSES.includes(job.status);
+
+  // Refetch assets as soon as the job transitions to GENERATED
+  const prevStatusRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = job?.status;
+    if (job?.status === "GENERATED" && prev !== undefined && prev !== "GENERATED") {
+      void queryClient.invalidateQueries({ queryKey: ["assets"] });
+    }
+  }, [job?.status, queryClient]);
 
   async function handleCancel() {
     try {
@@ -108,129 +120,125 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Left column */}
-        <div className="space-y-4">
-          <Card>
-            <CardContent className="pt-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <StatusBadge status={job.status} className="text-sm px-3 py-1" />
-                {isActive && (
-                  <span className="text-sm text-muted-foreground tabular-nums">
-                    {formatDuration(job.start_time ?? job.submitted_at)}
-                  </span>
-                )}
-                {!isActive && job.start_time && (
-                  <span className="text-sm text-muted-foreground">
-                    {formatDuration(job.start_time, job.end_time)}
-                  </span>
-                )}
-              </div>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                <dt className="text-muted-foreground">Workflow</dt>
-                <dd>
-                  <Link href={`/workflows/${job.workflow_id}`} className="hover:underline">
-                    {job.workflow_name ?? shortId(job.workflow_id)}
-                  </Link>
-                  {job.version_number && <Badge variant="outline" className="ml-1 text-xs">v{job.version_number}</Badge>}
-                </dd>
-                <dt className="text-muted-foreground">Submitted</dt>
-                <dd><RelativeTime value={job.submitted_at} /></dd>
-                <dt className="text-muted-foreground">By</dt>
-                <dd>{job.username ?? shortId(job.user_id)}</dd>
-              </dl>
-
-              {job.status === "FAILED" && job.error_message && (
-                <details className="rounded-md border border-red-200">
-                  <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-red-700 bg-red-50">
-                    Error details
-                  </summary>
-                  <pre className="overflow-auto p-3 text-xs text-red-700">{job.error_message}</pre>
-                </details>
+        {/* Left column — Status */}
+        <Card>
+          <CardContent className="pt-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <StatusBadge status={job.status} className="text-sm px-3 py-1" />
+              {isActive && (
+                <span className="text-sm text-muted-foreground tabular-nums">
+                  {formatDuration(job.start_time ?? job.submitted_at)}
+                </span>
               )}
+              {!isActive && job.start_time && (
+                <span className="text-sm text-muted-foreground">
+                  {formatDuration(job.start_time, job.end_time)}
+                </span>
+              )}
+            </div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+              <dt className="text-muted-foreground">Workflow</dt>
+              <dd>
+                <Link href={`/workflows/${job.workflow_id}`} className="hover:underline">
+                  {job.workflow_name ?? shortId(job.workflow_id)}
+                </Link>
+                {job.version_number && <Badge variant="outline" className="ml-1 text-xs">v{job.version_number}</Badge>}
+              </dd>
+              <dt className="text-muted-foreground">Submitted</dt>
+              <dd><RelativeTime value={job.submitted_at} /></dd>
+              <dt className="text-muted-foreground">By</dt>
+              <dd>{job.username ?? shortId(job.user_id)}</dd>
+            </dl>
 
-              <div className="flex gap-2 flex-wrap">
-                {isActive && (
-                  <Button size="sm" variant="outline" className="text-red-700 border-red-300" onClick={() => setShowCancel(true)}>
-                    Cancel
-                  </Button>
-                )}
-                {hasRole("JOB_CREATOR") && !isActive && (
-                  <Button size="sm" variant="outline" onClick={() => void handleRerun()} disabled={createJobMutation.isPending}>
-                    Rerun with same inputs
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+            {job.status === "FAILED" && job.error_message && (
+              <details className="rounded-md border border-red-200">
+                <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-red-700 bg-red-50">
+                  Error details
+                </summary>
+                <pre className="overflow-auto p-3 text-xs text-red-700">{job.error_message}</pre>
+              </details>
+            )}
 
-          {/* Input values */}
-          {(job.input_values ?? []).length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Inputs</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <div className="flex gap-2 flex-wrap">
+              {isActive && (
+                <Button size="sm" variant="outline" className="text-red-700 border-red-300" onClick={() => setShowCancel(true)}>
+                  Cancel
+                </Button>
+              )}
+              {hasRole("JOB_CREATOR") && !isActive && (
+                <Button size="sm" variant="outline" onClick={() => void handleRerun()} disabled={createJobMutation.isPending}>
+                  Rerun with same inputs
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Right column — Timeline */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Timeline</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <JobTimeline job={job} />
+            {(job.input_values ?? []).length > 0 && (
+              <div className="mt-4 space-y-2 border-t pt-3">
+                <p className="text-xs font-medium text-muted-foreground uppercase">Inputs</p>
                 {(job.input_values ?? []).map((iv) => (
                   <div key={iv.input_id} className="flex gap-2 text-sm">
                     <span className="shrink-0 text-muted-foreground">{iv.input_id}:</span>
                     <span className="truncate">{String(iv.value_json)}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Right column */}
-        <div className="space-y-4">
-          {/* Assets */}
-          {jobAssets.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Generated Assets</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-2">
-                  {jobAssets.map((asset) => (
-                    <button
-                      key={asset.id}
-                      onClick={() => setSelectedAsset(asset)}
-                      className="group relative aspect-square overflow-hidden rounded-md border bg-muted text-left"
-                    >
-                      {asset.type === "IMAGE" ? (
-                        <img
-                          src={assetDownloadUrl(asset.id)}
-                          alt={asset.filename ?? "asset"}
-                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-full flex-col items-center justify-center gap-1">
-                          <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">{asset.type}</span>
-                        </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-xs text-white">
-                        {formatBytes(asset.size_bytes)}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Timeline */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <JobTimeline job={job} />
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Assets — full-width below both cards */}
+      {(job.status === "GENERATED" || jobAssets.length > 0) && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-sm font-semibold">Generated Assets</h2>
+          {jobAssets.length === 0 ? (
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="aspect-square rounded-md" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
+              {jobAssets.map((asset) => (
+                <div
+                  key={asset.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedAsset(asset)}
+                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelectedAsset(asset)}
+                  className="group relative aspect-square overflow-hidden rounded-md border bg-muted cursor-pointer"
+                >
+                  {asset.type === "IMAGE" ? (
+                    <img
+                      src={assetDownloadUrl(asset.id)}
+                      alt={asset.filename ?? "asset"}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-1">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{asset.type}</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    {formatBytes(asset.size_bytes)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <ConfirmDialog
         open={showCancel}
