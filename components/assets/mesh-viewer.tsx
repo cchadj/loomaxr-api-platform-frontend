@@ -133,9 +133,9 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
       {/* Expanded dialog */}
       <DialogPrimitive.Root open={expanded} onOpenChange={setExpanded}>
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+          <DialogPrimitive.Backdrop className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-md duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
           <DialogPrimitive.Popup
-            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl shadow-2xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+            className="fixed top-1/2 left-1/2 z-[60] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl shadow-2xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
             style={{ width: "85vmin", height: "85vmin" }}
             aria-label={alt ?? "3D model viewer"}
           >
