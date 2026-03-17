@@ -4,6 +4,10 @@ export function assetDownloadUrl(assetId: string): string {
   return `${API_BASE}/api/assets/${assetId}/download`;
 }
 
+export function assetMeshProxyUrl(assetId: string): string {
+  return `/proxy/assets/${assetId}/download`;
+}
+
 export function formatBytes(bytes?: number): string {
   if (!bytes) return "—";
   if (bytes < 1024) return `${bytes} B`;
