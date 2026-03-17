@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { CopyButton } from "@/components/shared/copy-button";
+import { ShareButton } from "@/components/shared/share-button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -167,11 +168,14 @@ export default function JobsPage() {
                     ) : null}
                   </td>
                   <td className="px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
-                    {ACTIVE_STATUSES.includes(job.status) && (
-                      <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setCancelTarget(job)}>
-                        Cancel
-                      </Button>
-                    )}
+                    <div className="flex items-center justify-end gap-1">
+                      <ShareButton path={`/jobs/${job.id}`} />
+                      {ACTIVE_STATUSES.includes(job.status) && (
+                        <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setCancelTarget(job)}>
+                          Cancel
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

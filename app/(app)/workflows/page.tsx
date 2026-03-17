@@ -10,6 +10,7 @@ import { useWorkflows, useDuplicateWorkflow, useDeleteWorkflow } from "@/hooks/u
 import { apiGet } from "@/lib/api";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { CopyButton } from "@/components/shared/copy-button";
+import { ShareButton } from "@/components/shared/share-button";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -159,6 +160,7 @@ export default function WorkflowsPage() {
                   <td className="px-3 py-2"><RelativeTime value={w.created_at} /></td>
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
+                      <ShareButton path={`/workflows/${w.id}`} />
                       {hasRole("JOB_CREATOR") && (
                         <Button
                           size="sm"

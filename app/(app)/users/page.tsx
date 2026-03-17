@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useUsers } from "@/hooks/use-users";
 import { useWorkflows } from "@/hooks/use-workflows";
 import { useAssets } from "@/hooks/use-assets";
 import { AssetGrid } from "@/components/assets/asset-grid";
 import { EmptyState } from "@/components/shared/empty-state";
 import { RelativeTime } from "@/components/shared/relative-time";
+import { ShareButton } from "@/components/shared/share-button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -106,6 +108,14 @@ function UserDetailSheet({ user, open, onOpenChange }: { user: User; open: boole
 export default function UsersPage() {
   const { data: users, isLoading } = useUsers();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const id = searchParams.get("user");
+    if (!id || !users) return;
+    const found = users.find((u) => u.id === id);
+    if (found) setSelectedUser(found);
+  }, [searchParams, users]);
 
   if (isLoading) return (
     <div className="p-6 space-y-2">
@@ -128,6 +138,7 @@ export default function UsersPage() {
             <tr className="border-b bg-muted/50 text-xs text-muted-foreground">
               <th className="px-3 py-2 text-left">User</th>
               <th className="px-3 py-2 text-left">Roles</th>
+              <th className="px-3 py-2" />
             </tr>
           </thead>
           <tbody>
@@ -150,6 +161,9 @@ export default function UsersPage() {
                     {u.roles.map((r) => <RoleBadge key={r} role={r} />)}
                     {u.roles.length === 0 && <span className="text-xs text-muted-foreground">No roles</span>}
                   </div>
+                </td>
+                <td className="px-3 py-3 text-right">
+                  <ShareButton path={`/users?user=${u.id}`} />
                 </td>
               </tr>
             ))}
