@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AssetDetailSheet } from "@/components/assets/asset-detail-sheet";
@@ -11,10 +11,18 @@ interface AssetGridProps {
   assets: Asset[];
   /** Show skeleton placeholders while loading */
   loading?: boolean;
+  /** Pre-open the detail sheet for an asset with this ID (e.g. from URL ?selected=) */
+  selectedId?: string;
 }
 
-export function AssetGrid({ assets, loading = false }: AssetGridProps) {
+export function AssetGrid({ assets, loading = false, selectedId }: AssetGridProps) {
   const [selected, setSelected] = useState<Asset | null>(null);
+
+  useEffect(() => {
+    if (!selectedId || assets.length === 0) return;
+    const found = assets.find((a) => a.id === selectedId);
+    if (found) setSelected(found);
+  }, [selectedId, assets]);
 
   if (loading) {
     return (

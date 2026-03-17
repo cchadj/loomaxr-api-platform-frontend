@@ -5,6 +5,7 @@ import type { Asset, ValidationStatus } from "@/types/api";
 interface AssetFilters {
   mine?: boolean;
   workflow_id?: string;
+  job_id?: string;
   user_id?: string;
 }
 
@@ -13,6 +14,7 @@ export function useAssets(filters?: AssetFilters) {
   // Always send mine param explicitly — backend defaults to mine=true
   params.set("mine", filters?.mine !== false ? "true" : "false");
   if (filters?.workflow_id) params.set("workflow_id", filters.workflow_id);
+  if (filters?.job_id) params.set("job_id", filters.job_id);
   if (filters?.user_id) params.set("user_id", filters.user_id);
   const qs = params.toString();
 

@@ -57,13 +57,13 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const { hasRole } = useAuth();
   const queryClient = useQueryClient();
   const { data: job, isLoading, error } = useJob(id);
-  const { data: assets } = useAssets({ mine: false });
+  const { data: assets } = useAssets({ mine: false, job_id: id });
   const cancelMutation = useCancelJob();
   const createJobMutation = useCreateJob();
 
   const [showCancel, setShowCancel] = useState(false);
 
-  const jobAssets = (assets ?? []).filter((a) => a.job_id === id);
+  const jobAssets = assets ?? [];
   const isActive = job && ACTIVE_STATUSES.includes(job.status);
 
   // Refetch assets as soon as the job transitions to GENERATED

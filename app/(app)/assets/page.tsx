@@ -6,7 +6,7 @@ import { useAssets } from "@/hooks/use-assets";
 import { useWorkflows } from "@/hooks/use-workflows";
 import { useUsers } from "@/hooks/use-users";
 import { useAuth } from "@/lib/auth";
-import { AssetCard } from "@/components/assets/asset-card";
+import { AssetGrid } from "@/components/assets/asset-grid";
 import { AssetDetailSheet } from "@/components/assets/asset-detail-sheet";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelativeTime } from "@/components/shared/relative-time";
@@ -75,7 +75,7 @@ export default function AssetsPage() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [listSelected, setListSelected] = useState<Asset | null>(null);
 
   const isAdmin = hasRole("ADMIN");
   const canFilterUsers = hasRole("ADMIN") || hasRole("MODERATOR");
@@ -89,14 +89,7 @@ export default function AssetsPage() {
   const { data: workflows } = useWorkflows();
   const { data: users } = useUsers();
 
-  // Open from URL param (e.g. from dashboard links)
-  useEffect(() => {
-    const selected = searchParams.get("selected");
-    if (selected && assets) {
-      const a = assets.find((a) => a.id === selected);
-      if (a) setSelectedAsset(a);
-    }
-  }, [searchParams, assets]);
+  const selectedId = searchParams.get("selected") ?? undefined;
 
   const filtered = (assets ?? [])
     .filter((a) => {
@@ -108,7 +101,6 @@ export default function AssetsPage() {
     })
     .sort((a, b) => {
       if (sort === "largest") return (b.size_bytes ?? 0) - (a.size_bytes ?? 0);
-      // created_at not in API response — order is already newest-first from the server
       return 0;
     });
 
@@ -219,7 +211,6 @@ export default function AssetsPage() {
           </div>
         </div>
 
-        {/* Clear filters link if nothing matches */}
         {!isLoading && filtered.length === 0 && (assets?.length ?? 0) > 0 && (
           <div className="mb-4">
             <p className="text-sm text-muted-foreground">No results for these filters.{" "}
@@ -231,7 +222,7 @@ export default function AssetsPage() {
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
             {[...Array(12)].map((_, i) => <Skeleton key={i} className="aspect-square rounded-md" />)}
           </div>
         ) : filtered.length === 0 && (assets?.length ?? 0) === 0 ? (
@@ -243,27 +234,24 @@ export default function AssetsPage() {
             actionHref="/workflows"
           />
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            {filtered.map((asset) => (
-              <AssetCard key={asset.id} asset={asset} onClick={() => setSelectedAsset(asset)} />
-            ))}
-          </div>
+          <AssetGrid assets={filtered} selectedId={selectedId} />
         ) : (
-          <div className="space-y-2">
-            {filtered.map((asset) => (
-              <AssetListRow key={asset.id} asset={asset} onClick={() => setSelectedAsset(asset)} />
-            ))}
-          </div>
+          <>
+            <div className="space-y-2">
+              {filtered.map((asset) => (
+                <AssetListRow key={asset.id} asset={asset} onClick={() => setListSelected(asset)} />
+              ))}
+            </div>
+            {listSelected && (
+              <AssetDetailSheet
+                asset={listSelected}
+                open={Boolean(listSelected)}
+                onOpenChange={(o) => !o && setListSelected(null)}
+              />
+            )}
+          </>
         )}
       </div>
-
-      {selectedAsset && (
-        <AssetDetailSheet
-          asset={selectedAsset}
-          open={Boolean(selectedAsset)}
-          onOpenChange={(o) => !o && setSelectedAsset(null)}
-        />
-      )}
     </div>
   );
 }

@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useUsers } from "@/hooks/use-users";
 import { useWorkflows } from "@/hooks/use-workflows";
 import { useAssets } from "@/hooks/use-assets";
-import { AssetCard } from "@/components/assets/asset-card";
-import { AssetDetailSheet } from "@/components/assets/asset-detail-sheet";
+import { AssetGrid } from "@/components/assets/asset-grid";
 import { EmptyState } from "@/components/shared/empty-state";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -15,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Users, Images } from "lucide-react";
 import Link from "next/link";
-import type { User, Asset } from "@/types/api";
+import type { User } from "@/types/api";
 
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: "bg-red-50 text-red-700 border-red-200",
@@ -61,28 +60,13 @@ function UserWorkflowsTab({ userId }: { userId: string }) {
 }
 
 function UserAssetsTab({ userId }: { userId: string }) {
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const { data: assets, isLoading } = useAssets({ mine: false, user_id: userId });
 
-  if (isLoading) return <div className="grid grid-cols-3 gap-3">{[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-square rounded-md" />)}</div>;
-  if (!assets?.length) return <EmptyState icon={Images} title="No assets" description="This user has no visible assets." />;
+  if (!isLoading && !assets?.length) {
+    return <EmptyState icon={Images} title="No assets" description="This user has no visible assets." />;
+  }
 
-  return (
-    <>
-      <div className="grid grid-cols-3 gap-3">
-        {assets.map((asset) => (
-          <AssetCard key={asset.id} asset={asset} onClick={() => setSelectedAsset(asset)} />
-        ))}
-      </div>
-      {selectedAsset && (
-        <AssetDetailSheet
-          asset={selectedAsset}
-          open={Boolean(selectedAsset)}
-          onOpenChange={(o) => !o && setSelectedAsset(null)}
-        />
-      )}
-    </>
-  );
+  return <AssetGrid assets={assets ?? []} loading={isLoading} />;
 }
 
 function UserDetailSheet({ user, open, onOpenChange }: { user: User; open: boolean; onOpenChange: (o: boolean) => void }) {
