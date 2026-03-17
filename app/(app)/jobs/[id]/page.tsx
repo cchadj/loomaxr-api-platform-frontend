@@ -12,14 +12,12 @@ import { RelativeTime } from "@/components/shared/relative-time";
 import { CopyButton } from "@/components/shared/copy-button";
 import { QueryError } from "@/components/shared/query-error";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { AssetDetailSheet } from "@/components/assets/asset-detail-sheet";
+import { AssetGrid } from "@/components/assets/asset-grid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Image as ImageIcon } from "lucide-react";
-import { assetDownloadUrl, formatBytes, formatDuration, shortId } from "@/lib/utils-app";
-import type { Asset } from "@/types/api";
+import { formatDuration, shortId } from "@/lib/utils-app";
 
 const ACTIVE_STATUSES = ["QUEUED", "SUBMITTED", "RUNNING"];
 
@@ -64,7 +62,6 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
   const createJobMutation = useCreateJob();
 
   const [showCancel, setShowCancel] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   const jobAssets = (assets ?? []).filter((a) => a.job_id === id);
   const isActive = job && ACTIVE_STATUSES.includes(job.status);
@@ -200,43 +197,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       {(job.status === "GENERATED" || jobAssets.length > 0) && (
         <div className="mt-6">
           <h2 className="mb-3 text-sm font-semibold">Generated Assets</h2>
-          {jobAssets.length === 0 ? (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="aspect-square rounded-md" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
-              {jobAssets.map((asset) => (
-                <div
-                  key={asset.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedAsset(asset)}
-                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelectedAsset(asset)}
-                  className="group relative aspect-square overflow-hidden rounded-md border bg-muted cursor-pointer"
-                >
-                  {asset.type === "IMAGE" ? (
-                    <img
-                      src={assetDownloadUrl(asset.id)}
-                      alt={asset.filename ?? "asset"}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="flex h-full flex-col items-center justify-center gap-1">
-                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">{asset.type}</span>
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-                    {formatBytes(asset.size_bytes)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <AssetGrid
+            assets={jobAssets}
+            loading={job.status === "GENERATED" && jobAssets.length === 0}
+          />
         </div>
       )}
 
@@ -250,13 +214,6 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
         onConfirm={() => void handleCancel()}
       />
 
-      {selectedAsset && (
-        <AssetDetailSheet
-          asset={selectedAsset}
-          open={Boolean(selectedAsset)}
-          onOpenChange={(o) => !o && setSelectedAsset(null)}
-        />
-      )}
     </div>
   );
 }

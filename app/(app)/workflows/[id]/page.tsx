@@ -26,6 +26,7 @@ import type { WorkflowRequirementsResponse, Asset } from "@/types/api";
 import { shortId, assetDownloadUrl } from "@/lib/utils-app";
 import { AssetCard } from "@/components/assets/asset-card";
 import { AssetDetailSheet } from "@/components/assets/asset-detail-sheet";
+import { AssetGrid } from "@/components/assets/asset-grid";
 import { EmptyState } from "@/components/shared/empty-state";
 
 function ModelRequirementsPanel({ workflowId }: { workflowId: string }) {
@@ -220,6 +221,7 @@ export default function WorkflowDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const { hasRole } = useAuth();
   const { data: workflow, isLoading, error } = useWorkflow(id);
+  const { data: overviewAssets } = useAssets({ mine: false, workflow_id: id });
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") ?? "overview";
 
@@ -260,22 +262,30 @@ export default function WorkflowDetailPage({ params }: { params: Promise<{ id: s
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="space-y-4 max-w-2xl">
-            {workflow.description && <p className="text-sm text-muted-foreground">{workflow.description}</p>}
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <dt className="text-muted-foreground">Created by</dt>
-              <dd>{workflow.author ?? shortId(workflow.author_id ?? "")}</dd>
-              <dt className="text-muted-foreground">Created</dt>
-              <dd><RelativeTime value={workflow.created_at} /></dd>
-              <dt className="text-muted-foreground">Version</dt>
-              <dd>v{currentVersion?.version_number ?? "—"}</dd>
-              {currentVersion?.change_note && (
-                <>
-                  <dt className="text-muted-foreground">Change note</dt>
-                  <dd>{currentVersion.change_note}</dd>
-                </>
-              )}
-            </dl>
+          <div className="space-y-6">
+            <div className="max-w-2xl space-y-4">
+              {workflow.description && <p className="text-sm text-muted-foreground">{workflow.description}</p>}
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <dt className="text-muted-foreground">Created by</dt>
+                <dd>{workflow.author ?? shortId(workflow.author_id ?? "")}</dd>
+                <dt className="text-muted-foreground">Created</dt>
+                <dd><RelativeTime value={workflow.created_at} /></dd>
+                <dt className="text-muted-foreground">Version</dt>
+                <dd>v{currentVersion?.version_number ?? "—"}</dd>
+                {currentVersion?.change_note && (
+                  <>
+                    <dt className="text-muted-foreground">Change note</dt>
+                    <dd>{currentVersion.change_note}</dd>
+                  </>
+                )}
+              </dl>
+            </div>
+            {(overviewAssets?.length ?? 0) > 0 && (
+              <div>
+                <h2 className="mb-3 text-sm font-semibold">Generated Assets</h2>
+                <AssetGrid assets={overviewAssets ?? []} />
+              </div>
+            )}
           </div>
         </TabsContent>
 

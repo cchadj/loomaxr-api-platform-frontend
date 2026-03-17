@@ -131,7 +131,9 @@ export default function JobsPage() {
                 <tr key={job.id} className="border-b last:border-0 hover:bg-muted/30">
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1">
-                      <code className="font-mono text-xs">{shortId(job.id)}</code>
+                      <Link href={`/jobs/${job.id}`} className="font-mono text-xs hover:underline">
+                        {shortId(job.id)}
+                      </Link>
                       <CopyButton value={job.id} />
                     </div>
                   </td>
