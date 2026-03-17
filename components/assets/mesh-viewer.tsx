@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, AlertTriangle, Maximize2 } from "lucide-react";
 import { formatBytes } from "@/lib/utils-app";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 
 // Declare the custom element for TypeScript
 declare global {
@@ -131,9 +131,14 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
       </p>
 
       {/* Expanded dialog */}
-      <Dialog open={expanded} onOpenChange={setExpanded}>
-        <DialogContent className="max-w-[90vw] w-full p-2" showCloseButton>
-          <div style={{ height: "80vh" }}>
+      <DialogPrimitive.Root open={expanded} onOpenChange={setExpanded}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+          <DialogPrimitive.Popup
+            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl shadow-2xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+            style={{ width: "85vmin", height: "85vmin" }}
+            aria-label={alt ?? "3D model viewer"}
+          >
             {scriptReady && (
               // @ts-expect-error – model-viewer is a custom element registered at runtime
               <model-viewer
@@ -146,9 +151,15 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
                 style={{ width: "100%", height: "100%" }}
               />
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
+            <DialogPrimitive.Close
+              className="absolute top-2 right-2 z-10 rounded-md bg-black/50 p-1.5 text-white hover:bg-black/70 transition-colors"
+              aria-label="Close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </DialogPrimitive.Close>
+          </DialogPrimitive.Popup>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
     </div>
   );
 }
