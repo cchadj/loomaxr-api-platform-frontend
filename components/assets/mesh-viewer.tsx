@@ -32,13 +32,18 @@ interface MeshViewerProps {
   src: string;
   alt?: string;
   sizeBytes?: number;
+  onExpandChange?: (expanded: boolean) => void;
 }
 
-export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
+export function MeshViewer({ src, alt, sizeBytes, onExpandChange }: MeshViewerProps) {
   const [loaded, setLoaded] = useState(false);
   const [webGLAvailable, setWebGLAvailable] = useState(true);
   const [scriptReady, setScriptReady] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    onExpandChange?.(expanded);
+  }, [expanded, onExpandChange]);
   const ref = useRef<HTMLElement>(null);
 
   // Detect WebGL support
@@ -88,7 +93,7 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
         </div>
       )}
 
-      <div className="relative overflow-hidden rounded-md border bg-muted" style={{ height: 320 }}>
+      <div className="relative overflow-hidden rounded-md border bg-white" style={{ height: 320 }}>
         {/* Loading spinner overlay */}
         {!loaded && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10">
@@ -134,8 +139,10 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
       <DialogPrimitive.Root open={expanded} onOpenChange={setExpanded}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Backdrop className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-md duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+          {/* Clickable overlay sits above backdrop, below popup, to reliably catch outside clicks */}
+          <div className="fixed inset-0 z-[61] cursor-pointer" onClick={() => setExpanded(false)} />
           <DialogPrimitive.Popup
-            className="fixed top-1/2 left-1/2 z-[60] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl shadow-2xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+            className="fixed top-1/2 left-1/2 z-[62] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-white shadow-2xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
             style={{ width: "85vmin", height: "85vmin" }}
             aria-label={alt ?? "3D model viewer"}
           >
