@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelativeTime } from "@/components/shared/relative-time";
-import { AuthImage } from "@/components/ui/auth-image";
+import { useAuthBlobUrl } from "@/components/ui/auth-image";
 import { Lightbox } from "@/components/shared/lightbox";
 import type { Asset, ValidationStatus } from "@/types/api";
 import { assetDownloadUrl, formatBytes, shortId, assetFilename } from "@/lib/utils-app";
@@ -27,16 +27,21 @@ interface AssetDetailSheetProps {
 
 function ImagePreview({ asset }: { asset: Asset }) {
   const url = assetDownloadUrl(asset.id);
+  const blobUrl = useAuthBlobUrl(url);
   const [lightbox, setLightbox] = useState(true);
+
+  if (!blobUrl) return <div className="max-h-64 w-full rounded-md bg-muted animate-pulse" style={{ height: 200 }} />;
+
   return (
     <>
-      <AuthImage
-        src={url}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={blobUrl}
         alt={asset.filename ?? "asset"}
         className="max-h-64 w-full object-contain rounded-md cursor-zoom-in"
         onClick={() => setLightbox(true)}
       />
-      <Lightbox src={url} alt={asset.filename ?? undefined} open={lightbox} onOpenChange={setLightbox} />
+      <Lightbox src={blobUrl} alt={asset.filename ?? undefined} open={lightbox} onOpenChange={setLightbox} />
     </>
   );
 }
