@@ -119,6 +119,7 @@ export interface Job {
   workflow_key?: string;
   version_number?: number;
   input_values?: JobInputValue[];
+  inputs_schema?: InputSchema[];
   asset_count?: number;
 }
 

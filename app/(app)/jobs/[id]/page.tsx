@@ -19,8 +19,32 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDuration, shortId } from "@/lib/utils-app";
+import type { InputSchema, JobInputValue } from "@/types/api";
 
 const ACTIVE_STATUSES = ["QUEUED", "SUBMITTED", "RUNNING"];
+
+function JobInputRow({ iv, schema }: { iv: JobInputValue; schema?: InputSchema }) {
+  const label = schema?.label ?? iv.input_id;
+  const type = schema?.type ?? "string";
+  const value = iv.value_json;
+
+  return (
+    <div className="space-y-0.5">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      {type === "image" && typeof value === "string" ? (
+        <img
+          src={`/api/jobs/input-image/${encodeURIComponent(value)}`}
+          alt={label}
+          className="h-32 w-auto rounded border object-contain bg-muted"
+        />
+      ) : type === "string" && typeof value === "string" && value.length > 60 ? (
+        <p className="rounded border bg-muted/50 px-3 py-2 text-sm whitespace-pre-wrap">{value}</p>
+      ) : (
+        <p className="text-sm">{String(value)}</p>
+      )}
+    </div>
+  );
+}
 
 function JobTimeline({ job }: { job: ReturnType<typeof useJob>["data"] }) {
   if (!job) return null;
@@ -181,13 +205,14 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           <CardContent>
             <JobTimeline job={job} />
             {(job.input_values ?? []).length > 0 && (
-              <div className="mt-4 space-y-2 border-t pt-3">
+              <div className="mt-4 space-y-3 border-t pt-3">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Inputs</p>
                 {(job.input_values ?? []).map((iv) => (
-                  <div key={iv.input_id} className="flex gap-2 text-sm">
-                    <span className="shrink-0 text-muted-foreground">{iv.input_id}:</span>
-                    <span className="truncate">{String(iv.value_json)}</span>
-                  </div>
+                  <JobInputRow
+                    key={iv.input_id}
+                    iv={iv}
+                    schema={job.inputs_schema?.find((s) => s.id === iv.input_id)}
+                  />
                 ))}
               </div>
             )}
