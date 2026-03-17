@@ -143,8 +143,10 @@ export interface Asset {
   workflow_version_id?: string;
   type: AssetType;
   file_path: string;
+  filename?: string;
   size_bytes?: number;
   media_type?: string;
+  thumbnail_url?: string;
   is_public: boolean;
   validation_status: ValidationStatus | null;
   created_at?: string;
@@ -154,7 +156,6 @@ export interface Asset {
   workflow_version?: number;
   job_submitted_at?: string;
   // Frontend-derived
-  filename?: string;
   validation_history?: AssetValidation[];
   moderator_notes?: string;
 }

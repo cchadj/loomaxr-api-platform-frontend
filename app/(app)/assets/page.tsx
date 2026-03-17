@@ -42,8 +42,8 @@ function AssetListRow({ asset, onClick }: { asset: Asset; onClick: () => void })
       className="group flex w-full items-center gap-3 rounded-md border bg-background p-3 text-left hover:bg-muted/50 transition-colors cursor-pointer"
     >
       <div className="h-10 w-10 shrink-0 overflow-hidden rounded border bg-muted">
-        {asset.type === "IMAGE" ? (
-          <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
+        {asset.type === "IMAGE" || asset.thumbnail_url ? (
+          <img src={asset.type === "IMAGE" ? url : asset.thumbnail_url!} alt="" className="h-full w-full object-cover" loading="lazy" />
         ) : asset.type === "AUDIO" ? <Music className="h-full w-full p-2 text-muted-foreground" />
           : asset.type === "VIDEO" ? <Video className="h-full w-full p-2 text-muted-foreground" />
           : asset.type === "MESH" ? <Box className="h-full w-full p-2 text-muted-foreground" />

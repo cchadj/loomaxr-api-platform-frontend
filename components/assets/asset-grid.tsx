@@ -52,9 +52,9 @@ export function AssetGrid({ assets, loading = false, selectedId, onSheetClose, o
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (setSelected(asset), onAssetSelect?.(asset.id))}
             className="group relative aspect-square overflow-hidden rounded-md border bg-muted cursor-pointer"
           >
-            {asset.type === "IMAGE" ? (
+            {asset.type === "IMAGE" || asset.thumbnail_url ? (
               <img
-                src={assetDownloadUrl(asset.id)}
+                src={asset.type === "IMAGE" ? assetDownloadUrl(asset.id) : asset.thumbnail_url!}
                 alt={asset.filename ?? "asset"}
                 className="h-full w-full object-cover transition-transform group-hover:scale-105"
                 loading="lazy"
