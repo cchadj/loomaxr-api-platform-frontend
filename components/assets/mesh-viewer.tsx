@@ -33,13 +33,14 @@ interface MeshViewerProps {
   alt?: string;
   sizeBytes?: number;
   onExpandChange?: (expanded: boolean) => void;
+  autoExpand?: boolean;
 }
 
-export function MeshViewer({ src, alt, sizeBytes, onExpandChange }: MeshViewerProps) {
+export function MeshViewer({ src, alt, sizeBytes, onExpandChange, autoExpand = false }: MeshViewerProps) {
   const [loaded, setLoaded] = useState(false);
   const [webGLAvailable, setWebGLAvailable] = useState(true);
   const [scriptReady, setScriptReady] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(autoExpand);
 
   useEffect(() => {
     onExpandChange?.(expanded);

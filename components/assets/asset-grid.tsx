@@ -13,9 +13,13 @@ interface AssetGridProps {
   loading?: boolean;
   /** Pre-open the detail sheet for an asset with this ID (e.g. from URL ?selected=) */
   selectedId?: string;
+  /** Called when the detail sheet is closed */
+  onSheetClose?: () => void;
+  /** Called when an asset is selected */
+  onAssetSelect?: (id: string) => void;
 }
 
-export function AssetGrid({ assets, loading = false, selectedId }: AssetGridProps) {
+export function AssetGrid({ assets, loading = false, selectedId, onSheetClose, onAssetSelect }: AssetGridProps) {
   const [selected, setSelected] = useState<Asset | null>(null);
 
   useEffect(() => {
@@ -44,8 +48,8 @@ export function AssetGrid({ assets, loading = false, selectedId }: AssetGridProp
             key={asset.id}
             role="button"
             tabIndex={0}
-            onClick={() => setSelected(asset)}
-            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelected(asset)}
+            onClick={() => { setSelected(asset); onAssetSelect?.(asset.id); }}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (setSelected(asset), onAssetSelect?.(asset.id))}
             className="group relative aspect-square overflow-hidden rounded-md border bg-muted cursor-pointer"
           >
             {asset.type === "IMAGE" ? (
@@ -72,7 +76,12 @@ export function AssetGrid({ assets, loading = false, selectedId }: AssetGridProp
         <AssetDetailSheet
           asset={selected}
           open={Boolean(selected)}
-          onOpenChange={(o) => !o && setSelected(null)}
+          onOpenChange={(o) => {
+            if (!o) {
+              setSelected(null);
+              onSheetClose?.();
+            }
+          }}
         />
       )}
     </>

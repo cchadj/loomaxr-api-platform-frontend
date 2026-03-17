@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useAssets } from "@/hooks/use-assets";
 import { useWorkflows } from "@/hooks/use-workflows";
 import { useUsers } from "@/hooks/use-users";
@@ -70,6 +70,8 @@ function AssetListRow({ asset, onClick }: { asset: Asset; onClick: () => void })
 export default function AssetsPage() {
   const { hasRole } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [mine, setMine] = useState(true);
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [validationFilter, setValidationFilter] = useState("ALL");
@@ -93,6 +95,19 @@ export default function AssetsPage() {
   const { data: users } = useUsers();
 
   const selectedId = searchParams.get("selected") ?? undefined;
+
+  const setSelectedParam = useCallback((id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("selected", id);
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [searchParams, router, pathname]);
+
+  const clearSelectedParam = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("selected");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }, [searchParams, router, pathname]);
 
   const filtered = (assets ?? [])
     .filter((a) => {
@@ -237,19 +252,19 @@ export default function AssetsPage() {
             actionHref="/workflows"
           />
         ) : viewMode === "grid" ? (
-          <AssetGrid assets={filtered} selectedId={selectedId} />
+          <AssetGrid assets={filtered} selectedId={selectedId} onAssetSelect={setSelectedParam} onSheetClose={clearSelectedParam} />
         ) : (
           <>
             <div className="space-y-2">
               {filtered.map((asset) => (
-                <AssetListRow key={asset.id} asset={asset} onClick={() => setListSelected(asset)} />
+                <AssetListRow key={asset.id} asset={asset} onClick={() => { setListSelected(asset); setSelectedParam(asset.id); }} />
               ))}
             </div>
             {listSelected && (
               <AssetDetailSheet
                 asset={listSelected}
                 open={Boolean(listSelected)}
-                onOpenChange={(o) => !o && setListSelected(null)}
+                onOpenChange={(o) => { if (!o) { setListSelected(null); clearSelectedParam(); } }}
               />
             )}
           </>

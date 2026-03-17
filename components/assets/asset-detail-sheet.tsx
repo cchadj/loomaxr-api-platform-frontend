@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Lightbox } from "@/components/shared/lightbox";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useReviewAsset, useTogglePublic } from "@/hooks/use-assets";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelativeTime } from "@/components/shared/relative-time";
+import { Lightbox } from "@/components/shared/lightbox";
 import type { Asset, ValidationStatus } from "@/types/api";
 import { assetDownloadUrl, formatBytes, shortId, assetFilename } from "@/lib/utils-app";
 import { LinkButton } from "@/components/ui/link-button";
 import { MeshViewer } from "@/components/assets/mesh-viewer";
-import { Download, Music, Box, File, ExternalLink } from "lucide-react";
+import { Download, Music, File, ExternalLink } from "lucide-react";
 
 interface AssetDetailSheetProps {
   asset: Asset;
@@ -24,14 +24,19 @@ interface AssetDetailSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function ImagePreview({ url, alt }: { url: string; alt: string }) {
-  const [lightbox, setLightbox] = useState(false);
+function ImagePreview({ asset }: { asset: Asset }) {
+  const url = assetDownloadUrl(asset.id);
+  const [lightbox, setLightbox] = useState(true);
   return (
     <>
-      <button onClick={() => setLightbox(true)} className="block w-full cursor-zoom-in" title="Click to expand">
-        <img src={url} alt={alt} className="max-h-72 w-full rounded-md object-contain bg-muted" loading="lazy" />
-      </button>
-      <Lightbox src={url} alt={alt} open={lightbox} onOpenChange={setLightbox} />
+      <img
+        src={url}
+        alt={asset.filename ?? "asset"}
+        className="max-h-64 w-full object-contain rounded-md cursor-zoom-in"
+        loading="lazy"
+        onClick={() => setLightbox(true)}
+      />
+      <Lightbox src={url} alt={asset.filename ?? undefined} open={lightbox} onOpenChange={setLightbox} />
     </>
   );
 }
@@ -40,31 +45,30 @@ function AssetPreview({ asset }: { asset: Asset }) {
   const url = assetDownloadUrl(asset.id);
   switch (asset.type) {
     case "IMAGE":
-      return <ImagePreview url={url} alt={asset.filename ?? "asset"} />;
+      return <ImagePreview asset={asset} />;
     case "AUDIO":
       return (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Music className="h-8 w-8" />
-            <span className="text-sm">{asset.filename}</span>
-          </div>
-          <audio controls className="w-full" src={url} preload="none" />
+        <div className="flex flex-col items-center justify-center gap-4 p-8 w-full">
+          <Music className="h-16 w-16 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">{asset.filename}</span>
+          <audio controls className="w-full max-w-sm" src={url} preload="none" />
         </div>
       );
     case "VIDEO":
-      return <video controls className="w-full max-h-72 rounded-md bg-muted" src={url} preload="none" />;
+      return <video controls className="max-h-64 w-full rounded-md bg-muted" src={url} preload="none" />;
     case "MESH":
       return (
         <MeshViewer
           src={url}
           alt={assetFilename(asset)}
           sizeBytes={asset.size_bytes}
+          autoExpand
         />
       );
     default:
       return (
-        <div className="flex h-32 items-center justify-center gap-3 rounded-md border bg-muted">
-          <File className="h-10 w-10 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center gap-3">
+          <File className="h-16 w-16 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">{asset.filename ?? asset.type}</span>
         </div>
       );
@@ -102,29 +106,37 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto px-8">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
+      <SheetContent
+        className="w-full sm:max-w-xl overflow-y-auto px-8"
+        showCloseButton
+      >
+        <div className="flex flex-col gap-6 py-6">
+          {/* Asset type + filename */}
+          <div className="flex items-center gap-2">
             <Badge variant="outline">{asset.type}</Badge>
-            <span className="truncate text-sm font-normal">{assetFilename(asset)}</span>
-          </SheetTitle>
-        </SheetHeader>
-
-        <div className="mt-4 space-y-4">
-          {/* Download */}
-          <div className="flex gap-2">
-            <LinkButton href={downloadUrl} size="sm" download>
-              <Download className="mr-1 h-3 w-3" /> Download
-            </LinkButton>
-            {asset.is_public && asset.validation_status === "APPROVED" && (
-              <LinkButton href={`/api/public/assets/${asset.id}/download`} size="sm" variant="outline" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-1 h-3 w-3" /> Public link
-              </LinkButton>
-            )}
+            <span className="text-sm truncate">{assetFilename(asset)}</span>
           </div>
 
           {/* Preview */}
           <AssetPreview asset={asset} />
+
+          {/* Download */}
+          <div className="flex gap-2 flex-wrap">
+            <LinkButton href={downloadUrl} size="sm" download>
+              <Download className="mr-1 h-3 w-3" /> Download
+            </LinkButton>
+            {asset.is_public && asset.validation_status === "APPROVED" && (
+              <LinkButton
+                href={`/api/public/assets/${asset.id}/download`}
+                size="sm"
+                variant="outline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="mr-1 h-3 w-3" /> Public link
+              </LinkButton>
+            )}
+          </div>
 
           {/* Provenance */}
           <div className="space-y-2 rounded-md border p-3">
@@ -143,7 +155,11 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
                     <Link href={`/workflows/${asset.workflow_id}`} className="hover:underline">
                       {asset.workflow_name}
                     </Link>
-                    {asset.workflow_version && <Badge variant="outline" className="ml-1 text-xs">v{asset.workflow_version}</Badge>}
+                    {asset.workflow_version && (
+                      <Badge variant="outline" className="ml-1 text-xs">
+                        v{asset.workflow_version}
+                      </Badge>
+                    )}
                   </dd>
                 </>
               )}
@@ -153,11 +169,15 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
                   #{shortId(asset.job_id)}
                 </Link>
                 {asset.job_submitted_at && (
-                  <span className="ml-2 text-xs text-muted-foreground"><RelativeTime value={asset.job_submitted_at} /></span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    <RelativeTime value={asset.job_submitted_at} />
+                  </span>
                 )}
               </dd>
               <dt className="text-muted-foreground">Created</dt>
-              <dd><RelativeTime value={asset.created_at} /></dd>
+              <dd>
+                <RelativeTime value={asset.created_at} />
+              </dd>
             </dl>
           </div>
 
@@ -176,7 +196,6 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
             {asset.moderator_notes && (
               <p className="text-sm text-muted-foreground">{asset.moderator_notes}</p>
             )}
-
             {(hasRole("MODERATOR") || hasRole("ADMIN")) && (
               <div className="space-y-2 pt-1">
                 {showReviewInput ? (
@@ -205,15 +224,27 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
                       >
                         Confirm Reject
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setShowReviewInput(null)}>Cancel</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setShowReviewInput(null)}>
+                        Cancel
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="text-green-700 border-green-300" onClick={() => setShowReviewInput("approve")}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-green-700 border-green-300"
+                      onClick={() => setShowReviewInput("approve")}
+                    >
                       Approve
                     </Button>
-                    <Button size="sm" variant="outline" className="text-red-700 border-red-300" onClick={() => setShowReviewInput("reject")}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-700 border-red-300"
+                      onClick={() => setShowReviewInput("reject")}
+                    >
                       Reject
                     </Button>
                   </div>
@@ -227,7 +258,9 @@ export function AssetDetailSheet({ asset, open, onOpenChange }: AssetDetailSheet
             <div className="flex items-center justify-between rounded-md border p-3">
               <div>
                 <p className="text-sm font-medium">Public access</p>
-                <p className="text-xs text-muted-foreground">Accessible without login via /api/public/assets</p>
+                <p className="text-xs text-muted-foreground">
+                  Accessible without login via /api/public/assets
+                </p>
               </div>
               <Button
                 size="sm"
