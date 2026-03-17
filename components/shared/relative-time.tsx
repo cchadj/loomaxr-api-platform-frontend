@@ -20,8 +20,16 @@ function formatAbsolute(date: Date): string {
   return date.toLocaleString();
 }
 
+function parseDate(value: string | Date): Date {
+  if (typeof value !== "string") return value;
+  // Backend returns UTC timestamps without timezone suffix — append Z so JS
+  // parses them as UTC rather than local time.
+  const s = /[Z+\-]\d*$/.test(value) ? value : value + "Z";
+  return new Date(s);
+}
+
 export function RelativeTime({ value }: { value: string | Date | undefined | null }) {
-  const date = value ? (typeof value === "string" ? new Date(value) : value) : null;
+  const date = value ? parseDate(value) : null;
   const isValid = date instanceof Date && !isNaN(date.getTime());
   const [label, setLabel] = useState(() => isValid ? formatRelative(date!) : "—");
 
