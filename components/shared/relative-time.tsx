@@ -35,7 +35,7 @@ export function RelativeTime({ value }: { value: string | Date | undefined | nul
 
   useEffect(() => {
     if (!isValid) return;
-    const interval = setInterval(() => setLabel(formatRelative(date!)), 30_000);
+    const interval = setInterval(() => setLabel(formatRelative(date!)), 1_000);
     return () => clearInterval(interval);
   }, [date, isValid]);
 
