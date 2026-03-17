@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Lightbox } from "@/components/shared/lightbox";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useReviewAsset, useTogglePublic } from "@/hooks/use-assets";
@@ -23,20 +24,23 @@ interface AssetDetailSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function ImagePreview({ url, alt }: { url: string; alt: string }) {
+  const [lightbox, setLightbox] = useState(false);
+  return (
+    <>
+      <button onClick={() => setLightbox(true)} className="block w-full cursor-zoom-in" title="Click to expand">
+        <img src={url} alt={alt} className="max-h-72 w-full rounded-md object-contain bg-muted" loading="lazy" />
+      </button>
+      <Lightbox src={url} alt={alt} open={lightbox} onOpenChange={setLightbox} />
+    </>
+  );
+}
+
 function AssetPreview({ asset }: { asset: Asset }) {
   const url = assetDownloadUrl(asset.id);
   switch (asset.type) {
     case "IMAGE":
-      return (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-          <img
-            src={url}
-            alt={asset.filename ?? "asset"}
-            className="max-h-72 w-full rounded-md object-contain bg-muted"
-            loading="lazy"
-          />
-        </a>
-      );
+      return <ImagePreview url={url} alt={asset.filename ?? "asset"} />;
     case "AUDIO":
       return (
         <div className="space-y-2">

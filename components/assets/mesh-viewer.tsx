@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Box, AlertTriangle } from "lucide-react";
+import { Box, AlertTriangle, Maximize2 } from "lucide-react";
 import { formatBytes } from "@/lib/utils-app";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 // Declare the custom element for TypeScript
 declare global {
@@ -37,6 +38,7 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
   const [loaded, setLoaded] = useState(false);
   const [webGLAvailable, setWebGLAvailable] = useState(true);
   const [scriptReady, setScriptReady] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
   // Detect WebGL support
@@ -95,6 +97,15 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
           </div>
         )}
 
+        {/* Expand button */}
+        <button
+          onClick={() => setExpanded(true)}
+          className="absolute top-2 right-2 z-20 rounded-md bg-background/70 p-1.5 hover:bg-background transition-colors"
+          title="Expand"
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </button>
+
         {scriptReady && (
           // @ts-expect-error – model-viewer is a custom element registered at runtime
           <model-viewer
@@ -118,6 +129,26 @@ export function MeshViewer({ src, alt, sizeBytes }: MeshViewerProps) {
       <p className="mt-1 text-center text-xs text-muted-foreground">
         Drag to rotate · Scroll to zoom
       </p>
+
+      {/* Expanded dialog */}
+      <Dialog open={expanded} onOpenChange={setExpanded}>
+        <DialogContent className="max-w-[90vw] w-full p-2" showCloseButton>
+          <div style={{ height: "80vh" }}>
+            {scriptReady && (
+              // @ts-expect-error – model-viewer is a custom element registered at runtime
+              <model-viewer
+                src={src}
+                alt={alt ?? "3D model"}
+                auto-rotate
+                camera-controls
+                shadow-intensity="1"
+                loading="eager"
+                style={{ width: "100%", height: "100%" }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
