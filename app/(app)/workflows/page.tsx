@@ -14,7 +14,6 @@ import { ShareButton } from "@/components/shared/share-button";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { RunWorkflowSheet } from "@/components/workflows/run-workflow-sheet";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { LinkButton } from "@/components/ui/link-button";
 import { cn } from "@/lib/utils";
@@ -60,7 +59,6 @@ export default function WorkflowsPage() {
   const [dupTarget, setDupTarget] = useState<WorkflowType | null>(null);
   const [dupKey, setDupKey] = useState("");
   const [dupName, setDupName] = useState("");
-  const [runTarget, setRunTarget] = useState<WorkflowType | null>(null);
 
   const filtered = (workflows ?? []).filter(
     (w) =>
@@ -163,14 +161,14 @@ export default function WorkflowsPage() {
                       <ShareButton path={`/workflows/${w.id}`} title={w.name} description={w.description} author={w.author} />
                       <ShareButton path={`/workflows/${w.id}/run`} title={w.name} description={w.description} author={w.author} label="Share Run" variant="icon" icon={PlayCircle} />
                       {hasRole("JOB_CREATOR") && (
-                        <Button
+                        <LinkButton
+                          href={`/workflows/${w.id}/run`}
                           size="sm"
                           variant="ghost"
                           className="h-7 gap-1 px-2 text-xs"
-                          onClick={() => setRunTarget(w)}
                         >
                           <Play className="h-3 w-3" /> Run
-                        </Button>
+                        </LinkButton>
                       )}
                       {hasRole("WORKFLOW_CREATOR") && (
                         <LinkButton
@@ -243,14 +241,6 @@ export default function WorkflowsPage() {
         onConfirm={() => void handleDelete()}
       />
 
-      {/* Run sheet */}
-      {runTarget && (
-        <RunWorkflowSheet
-          workflow={runTarget}
-          open={Boolean(runTarget)}
-          onOpenChange={(o) => !o && setRunTarget(null)}
-        />
-      )}
     </div>
   );
 }
