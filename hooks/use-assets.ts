@@ -21,6 +21,7 @@ export function useAssets(filters?: AssetFilters) {
   return useQuery<Asset[]>({
     queryKey: ["assets", filters],
     queryFn: () => apiGet(`/api/assets${qs ? `?${qs}` : ""}`),
+    refetchInterval: 1_000,
   });
 }
 

@@ -165,7 +165,7 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
         {/* Blur backdrop */}
         {/* Plain div backdrop — DialogPrimitive.Backdrop ignores pointer events */}
         <div
-          className="fixed inset-0 z-50 bg-black/60 supports-backdrop-filter:backdrop-blur-sm cursor-pointer"
+          className="fixed inset-0 z-40 bg-black/60 supports-backdrop-filter:backdrop-blur-sm cursor-pointer"
           onClick={() => onOpenChange(false)}
         />
 
