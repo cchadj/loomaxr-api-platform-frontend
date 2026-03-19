@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
@@ -100,17 +100,12 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
   const togglePublicMutation = useTogglePublic();
   const [reviewNotes, setReviewNotes] = useState("");
   const [showReviewInput, setShowReviewInput] = useState<"approve" | "reject" | null>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
 
-  // Keyboard arrow navigation
+  // Steal focus from the grid item as soon as the dialog opens
   useEffect(() => {
-    if (!open) return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "ArrowLeft") { e.preventDefault(); onPrev?.(); }
-      if (e.key === "ArrowRight") { e.preventDefault(); onNext?.(); }
-    }
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [open, onPrev, onNext]);
+    if (open) popupRef.current?.focus();
+  }, [open]);
 
   async function handleReview(status: ValidationStatus) {
     try {
@@ -170,7 +165,15 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
         </div>
 
         {/* Right side panel — details sheet */}
-        <DialogPrimitive.Popup className="fixed inset-y-0 right-0 z-50 h-full w-full sm:max-w-[42rem] bg-background border-l shadow-xl overflow-y-auto transition duration-200 ease-in-out data-starting-style:translate-x-10 data-starting-style:opacity-0 data-ending-style:translate-x-10 data-ending-style:opacity-0 outline-none">
+        <DialogPrimitive.Popup
+          ref={popupRef}
+          tabIndex={-1}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft") { e.preventDefault(); onPrev?.(); }
+            if (e.key === "ArrowRight") { e.preventDefault(); onNext?.(); }
+          }}
+          className="fixed inset-y-0 right-0 z-50 h-full w-full sm:max-w-[42rem] bg-background border-l shadow-xl overflow-y-auto transition duration-200 ease-in-out data-starting-style:translate-x-10 data-starting-style:opacity-0 data-ending-style:translate-x-10 data-ending-style:opacity-0 outline-none"
+        >
           <div className="flex flex-col gap-6 px-8 py-6">
             {/* Asset type + filename */}
             <div className="flex items-center gap-2 pr-8">
