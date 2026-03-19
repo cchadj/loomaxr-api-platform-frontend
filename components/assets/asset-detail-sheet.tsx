@@ -34,7 +34,7 @@ function ImagePreview({ asset }: { asset: Asset }) {
   const blobUrl = useAuthBlobUrl(url);
   const [lightbox, setLightbox] = useState(false);
 
-  if (!blobUrl) return <div className="w-full rounded-md bg-white/10 animate-pulse" style={{ height: 300 }} />;
+  if (!blobUrl) return null;
 
   return (
     <>
@@ -138,7 +138,9 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
         {/* Center: large preview + nav arrows — hidden on mobile where sheet takes full width */}
         <div className="fixed inset-y-0 left-0 right-0 sm:right-[42rem] z-50 hidden sm:flex flex-col items-center justify-center gap-5 p-8 pointer-events-none">
           <div className="pointer-events-auto flex flex-col items-center gap-5 w-full">
-            <CenterPreview asset={asset} />
+            <div className="flex items-center justify-center w-full min-h-[50vh]">
+              <CenterPreview asset={asset} />
+            </div>
             {(onPrev || onNext) && (
               <div className="flex items-center gap-4">
                 <Button
