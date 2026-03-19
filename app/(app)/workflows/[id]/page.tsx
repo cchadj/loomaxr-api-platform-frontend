@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
-import { Edit, Images } from "lucide-react";
+import { Edit, Images, Play } from "lucide-react";
 import type { WorkflowRequirementsResponse } from "@/types/api";
 import { shortId } from "@/lib/utils-app";
 import { AssetGrid } from "@/components/assets/asset-grid";
@@ -217,13 +217,11 @@ export default function WorkflowDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
         <div className="flex gap-2">
-          <ShareButton
-            path={`/workflows/${id}`}
-            title={workflow.name}
-            description={workflow.description}
-            author={workflow.author}
-            variant="button"
-          />
+          {hasRole("JOB_CREATOR") && (
+            <LinkButton href={`/workflows/${id}/run`} size="sm">
+              <Play className="mr-1 h-3 w-3" /> Run
+            </LinkButton>
+          )}
           <ShareButton
             path={`/workflows/${id}/run`}
             title={workflow.name}
