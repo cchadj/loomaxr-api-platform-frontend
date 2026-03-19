@@ -140,44 +140,46 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
         />
 
         {/* Center: large preview + nav arrows — hidden on mobile where sheet takes full width */}
-        <div className="fixed inset-y-0 left-0 right-0 sm:right-[42rem] z-50 hidden sm:flex flex-col items-center justify-center gap-5 p-8 pointer-events-none">
+        <div className="fixed inset-y-0 left-0 right-0 sm:right-[42rem] z-50 hidden sm:flex flex-col p-8 pointer-events-none">
           {/* X button — top-right of the center area */}
           <Button
             variant="ghost"
             size="icon-sm"
-            className="pointer-events-auto absolute top-3 right-3 text-white hover:bg-white/20 hover:text-white"
+            className="pointer-events-auto self-end text-white hover:bg-white/20 hover:text-white shrink-0"
             onClick={() => onOpenChange(false)}
           >
             <X className="h-5 w-5" />
             <span className="sr-only">Close</span>
           </Button>
-          <div className="pointer-events-auto flex flex-col items-center gap-5 w-full">
-            <div className="flex items-center justify-center w-full min-h-[50vh]">
-              <CenterPreview asset={asset} />
-            </div>
-            {(onPrev || onNext) && (
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onPrev}
-                  disabled={!hasPrev}
-                  className="gap-1 bg-background/80 backdrop-blur-sm"
-                >
-                  <ChevronLeft className="h-4 w-4" /> Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onNext}
-                  disabled={!hasNext}
-                  className="gap-1 bg-background/80 backdrop-blur-sm"
-                >
-                  Next <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+
+          {/* Image area — fills all space between X button and nav */}
+          <div className="flex-1 flex items-center justify-center w-full min-h-0">
+            <CenterPreview asset={asset} />
           </div>
+
+          {/* Nav buttons — always at the bottom */}
+          {(onPrev || onNext) && (
+            <div className="pointer-events-auto flex items-center justify-center gap-4 shrink-0 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPrev}
+                disabled={!hasPrev}
+                className="gap-1 bg-background/80 backdrop-blur-sm"
+              >
+                <ChevronLeft className="h-4 w-4" /> Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onNext}
+                disabled={!hasNext}
+                className="gap-1 bg-background/80 backdrop-blur-sm"
+              >
+                Next <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Right side panel — details sheet */}
