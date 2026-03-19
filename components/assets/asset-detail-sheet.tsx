@@ -17,7 +17,7 @@ import type { Asset, ValidationStatus } from "@/types/api";
 import { assetDownloadUrl, assetMeshProxyUrl, formatBytes, shortId, assetFilename } from "@/lib/utils-app";
 import { AuthDownloadButton, LinkButton } from "@/components/ui/link-button";
 import { MeshViewer } from "@/components/assets/mesh-viewer";
-import { Download, Music, File, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Music, File, ExternalLink, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 interface AssetDetailSheetProps {
   asset: Asset;
@@ -133,10 +133,24 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         {/* Blur backdrop */}
-        <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/60 supports-backdrop-filter:backdrop-blur-sm transition-opacity duration-200 data-starting-style:opacity-0 data-ending-style:opacity-0" />
+        {/* Plain div backdrop — DialogPrimitive.Backdrop ignores pointer events */}
+        <div
+          className="fixed inset-0 z-50 bg-black/60 supports-backdrop-filter:backdrop-blur-sm cursor-pointer"
+          onClick={() => onOpenChange(false)}
+        />
 
         {/* Center: large preview + nav arrows — hidden on mobile where sheet takes full width */}
         <div className="fixed inset-y-0 left-0 right-0 sm:right-[42rem] z-50 hidden sm:flex flex-col items-center justify-center gap-5 p-8 pointer-events-none">
+          {/* X button — top-right of the center area */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="pointer-events-auto absolute top-3 right-3 text-white hover:bg-white/20 hover:text-white"
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </Button>
           <div className="pointer-events-auto flex flex-col items-center gap-5 w-full">
             <div className="flex items-center justify-center w-full min-h-[50vh]">
               <CenterPreview asset={asset} />
@@ -176,6 +190,15 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
           }}
           className="fixed inset-y-0 right-0 z-50 h-full w-full sm:max-w-[42rem] bg-background border-l shadow-xl overflow-y-auto transition duration-200 ease-in-out data-starting-style:translate-x-10 data-starting-style:opacity-0 data-ending-style:translate-x-10 data-ending-style:opacity-0 outline-none"
         >
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="fixed top-3 right-3 z-[51]"
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
+          </Button>
           <div className="flex flex-col gap-6 px-8 py-6">
             {/* Asset type + filename */}
             <div className="flex items-center gap-2 pr-8">
