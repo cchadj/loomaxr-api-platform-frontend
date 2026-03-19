@@ -21,12 +21,14 @@ interface AssetGridProps {
 }
 
 export function AssetGrid({ assets, loading = false, selectedId, onSheetClose, onAssetSelect }: AssetGridProps) {
-  const [selected, setSelected] = useState<Asset | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  const selected = selectedIndex !== null ? (assets[selectedIndex] ?? null) : null;
 
   useEffect(() => {
     if (!selectedId || assets.length === 0) return;
-    const found = assets.find((a) => a.id === selectedId);
-    if (found) setSelected(found);
+    const idx = assets.findIndex((a) => a.id === selectedId);
+    if (idx !== -1) setSelectedIndex(idx);
   }, [selectedId, assets]);
 
   if (loading) {
@@ -44,13 +46,13 @@ export function AssetGrid({ assets, loading = false, selectedId, onSheetClose, o
   return (
     <>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
-        {assets.map((asset) => (
+        {assets.map((asset, i) => (
           <div
             key={asset.id}
             role="button"
             tabIndex={0}
-            onClick={() => { setSelected(asset); onAssetSelect?.(asset.id); }}
-            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (setSelected(asset), onAssetSelect?.(asset.id))}
+            onClick={() => { setSelectedIndex(i); onAssetSelect?.(asset.id); }}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (setSelectedIndex(i), onAssetSelect?.(asset.id))}
             className="group relative aspect-square overflow-hidden rounded-md border bg-muted cursor-pointer"
           >
             {asset.type === "IMAGE" || asset.thumbnail_url ? (
@@ -78,10 +80,14 @@ export function AssetGrid({ assets, loading = false, selectedId, onSheetClose, o
           open={Boolean(selected)}
           onOpenChange={(o) => {
             if (!o) {
-              setSelected(null);
+              setSelectedIndex(null);
               onSheetClose?.();
             }
           }}
+          hasPrev={selectedIndex !== null && selectedIndex > 0}
+          hasNext={selectedIndex !== null && selectedIndex < assets.length - 1}
+          onPrev={() => setSelectedIndex((i) => (i !== null && i > 0 ? i - 1 : i))}
+          onNext={() => setSelectedIndex((i) => (i !== null && i < assets.length - 1 ? i + 1 : i))}
         />
       )}
     </>
