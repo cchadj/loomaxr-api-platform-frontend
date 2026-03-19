@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +21,8 @@ type FormValues = z.infer<typeof schema>;
 export default function LoginPage() {
   const { login, devMode, user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/";
   const [error, setError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
@@ -30,7 +32,7 @@ export default function LoginPage() {
   // Redirect once a user session is active (covers both JWT and dev-mode login)
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/");
+      router.replace(next);
     }
   }, [user, loading, router]);
 
@@ -38,7 +40,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(values.username, values.password);
-      router.replace("/");
+      router.replace(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed");
     }

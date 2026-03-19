@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { Workflow, InputSchema } from "@/types/api";
+import type { Workflow, InputSchema, Job } from "@/types/api";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 interface RunWorkflowFormProps {
   workflow: Workflow;
-  onSuccess?: () => void;
+  onSuccess?: (job: Job) => void;
 }
 
 export function RunWorkflowForm({ workflow, onSuccess }: RunWorkflowFormProps) {
@@ -88,8 +88,11 @@ export function RunWorkflowForm({ workflow, onSuccess }: RunWorkflowFormProps) {
       });
 
       toast.success("Job created");
-      onSuccess?.();
-      router.push(`/jobs/${job.id}`);
+      if (onSuccess) {
+        onSuccess(job);
+      } else {
+        router.push(`/jobs/${job.id}`);
+      }
     } catch (e: unknown) {
       if (e && typeof e === "object" && "status" in e && (e as { status: number }).status === 422) {
         const data = (e as { data?: { detail?: string | Array<{ msg: string }> } }).data;

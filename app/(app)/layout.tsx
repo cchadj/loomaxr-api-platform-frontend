@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { DevBanner } from "@/components/layout/dev-banner";
@@ -10,12 +10,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, devMode, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user && !devMode) {
-      router.replace("/login");
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [user, devMode, loading, router]);
+  }, [user, devMode, loading, router, pathname]);
 
   if (loading) {
     return (

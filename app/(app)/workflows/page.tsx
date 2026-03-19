@@ -28,7 +28,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Plus, Workflow, Play, Pencil, Copy, Trash2 } from "lucide-react";
+import { MoreHorizontal, Plus, Workflow, Play, Pencil, Copy, Trash2, PlayCircle } from "lucide-react";
 import type { Workflow as WorkflowType, WorkflowRequirementsResponse } from "@/types/api";
 import { shortId } from "@/lib/utils-app";
 
@@ -160,7 +160,8 @@ export default function WorkflowsPage() {
                   <td className="px-3 py-2"><RelativeTime value={w.created_at} /></td>
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
-                      <ShareButton path={`/workflows/${w.id}`} />
+                      <ShareButton path={`/workflows/${w.id}`} title={w.name} description={w.description} author={w.author} />
+                      <ShareButton path={`/workflows/${w.id}/run`} title={w.name} description={w.description} author={w.author} label="Share Run" variant="icon" icon={PlayCircle} />
                       {hasRole("JOB_CREATOR") && (
                         <Button
                           size="sm"

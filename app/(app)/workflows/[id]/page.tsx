@@ -12,6 +12,7 @@ import { apiGet, apiPatch, apiPost } from "@/lib/api";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { RelativeTime } from "@/components/shared/relative-time";
 import { CopyButton } from "@/components/shared/copy-button";
+import { ShareButton } from "@/components/shared/share-button";
 import { QueryError } from "@/components/shared/query-error";
 import { RunWorkflowForm } from "@/components/workflows/run-workflow-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -216,7 +217,21 @@ export default function WorkflowDetailPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
         <div className="flex gap-2">
-          {hasRole("JOB_CREATOR") && null /* Run is in the tab */}
+          <ShareButton
+            path={`/workflows/${id}`}
+            title={workflow.name}
+            description={workflow.description}
+            author={workflow.author}
+            variant="button"
+          />
+          <ShareButton
+            path={`/workflows/${id}/run`}
+            title={workflow.name}
+            description={workflow.description}
+            author={workflow.author}
+            variant="button"
+            label="Share Run"
+          />
           {hasRole("WORKFLOW_CREATOR") && (
             <LinkButton href={`/workflows/${id}/edit`} size="sm" variant="outline">
               <Edit className="mr-1 h-3 w-3" /> Edit
