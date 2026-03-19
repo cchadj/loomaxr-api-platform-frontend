@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import type { User, DevModeInfo } from "@/types/api";
+import type { User, AuthTokens, DevModeInfo } from "@/types/api";
 import { apiGet, apiPost } from "@/lib/api";
 import {
   clearAccessTokenCookie,
@@ -105,11 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
-    const data = await apiPost<{
-      access_token: string;
-      refresh_token: string;
-      user: User;
-    }>("/api/auth/login", { username, password });
+    const data = await apiPost<AuthTokens>("/api/auth/login", { username, password });
 
     localStorage.setItem("access_token", data.access_token);
     localStorage.setItem("refresh_token", data.refresh_token);

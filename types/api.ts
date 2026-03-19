@@ -19,7 +19,7 @@ export interface DevModeInfo {
 }
 
 // Roles
-export type Role = "ADMIN" | "WORKFLOW_CREATOR" | "JOB_CREATOR" | "VIEWER" | "MODERATOR";
+export type Role = "admin" | "workflow_creator" | "job_creator" | "viewer" | "moderator";
 
 // Workflows
 export interface InputMapping {
