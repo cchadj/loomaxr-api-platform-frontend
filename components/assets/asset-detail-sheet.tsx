@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
@@ -14,6 +14,7 @@ import { RelativeTime } from "@/components/shared/relative-time";
 import { useAuthBlobUrl } from "@/components/ui/auth-image";
 import { Lightbox } from "@/components/shared/lightbox";
 import type { Asset, ValidationStatus } from "@/types/api";
+import { useJob } from "@/hooks/use-jobs";
 import { assetDownloadUrl, assetMeshProxyUrl, formatBytes, shortId, assetFilename } from "@/lib/utils-app";
 import { AuthDownloadButton, LinkButton } from "@/components/ui/link-button";
 import { MeshViewer } from "@/components/assets/mesh-viewer";
@@ -92,6 +93,35 @@ function CenterPreview({ asset }: { asset: Asset }) {
         </div>
       );
   }
+}
+
+function JobInputsSection({ jobId }: { jobId: string }) {
+  const { data: job } = useJob(jobId);
+  const inputs = job?.inputs_schema ?? [];
+  const values = job?.input_values ?? [];
+  if (inputs.length === 0) return null;
+
+  return (
+    <div className="space-y-2 rounded-md border p-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Inputs</p>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+        {inputs.map((schema) => {
+          const val = values.find((v) => v.input_id === schema.id);
+          const display = val !== undefined
+            ? String(val.value_json ?? "")
+            : schema.default !== undefined && schema.default !== null
+              ? String(schema.default)
+              : "—";
+          return (
+            <React.Fragment key={schema.id}>
+              <dt className="text-muted-foreground">{schema.label}</dt>
+              <dd className="truncate">{display}</dd>
+            </React.Fragment>
+          );
+        })}
+      </dl>
+    </div>
+  );
 }
 
 export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, hasPrev, hasNext }: AssetDetailSheetProps) {
@@ -283,6 +313,9 @@ export function AssetDetailSheet({ asset, open, onOpenChange, onPrev, onNext, ha
                 </dd>
               </dl>
             </div>
+
+            {/* Inputs */}
+            <JobInputsSection jobId={asset.job_id} />
 
             {/* File metadata */}
             <div className="space-y-1 text-xs text-muted-foreground">
