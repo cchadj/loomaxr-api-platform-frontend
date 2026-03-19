@@ -24,8 +24,10 @@ function TeamsShareButton({ url, title, description, author, children }: { url: 
   const lines = [title];
   if (description) lines.push(description);
   if (author) lines.push(`By: ${author}`);
-  const msgText = lines.join("\n");
-  const href = `https://teams.microsoft.com/share?href=${encodeURIComponent(url)}&preview=true&title=${encodeURIComponent(title)}&msgText=${encodeURIComponent(msgText)}`;
+  lines.push(PLATFORM_CONTEXT);
+  // Encode each line individually and join with literal %0A so Teams renders actual line breaks
+  const msgText = lines.map((l) => encodeURIComponent(l)).join("%0A");
+  const href = `https://teams.microsoft.com/share?href=${encodeURIComponent(url)}&preview=true&title=${encodeURIComponent(title)}&msgText=${msgText}`;
   return (
     <a href={href} target="_blank" rel="noopener noreferrer">
       {children}
@@ -64,11 +66,21 @@ interface ShareDialogProps {
   author?: string;
 }
 
+const PLATFORM_CONTEXT = "Generate content with this workflow!";
+
 export function ShareDialog({ open, onOpenChange, url, title, description, author }: ShareDialogProps) {
   const [copied, setCopied] = useState(false);
 
+  // Full share text used for all platforms that accept a message body
   const shareTitle = [title, description].filter(Boolean).join(" — ");
-  const emailBody = [title, description, author ? `By: ${author}` : null, url].filter(Boolean).join("\n");
+  const shareLines = [
+    title,
+    description ?? null,
+    author ? `By: ${author}` : null,
+    PLATFORM_CONTEXT,
+  ].filter(Boolean) as string[];
+  const shareText = shareLines.join("\n");
+  const emailBody = [...shareLines, url].join("\n");
 
   async function handleCopy() {
     await navigator.clipboard.writeText(url);
@@ -120,27 +132,27 @@ export function ShareDialog({ open, onOpenChange, url, title, description, autho
               <span className={labelClass}>Messenger</span>
             </FacebookMessengerShareButton>
 
-            <FacebookShareButton url={url} className={buttonClass} onClick={() => onOpenChange(false)}>
+            <FacebookShareButton url={url} quote={shareText} className={buttonClass} onClick={() => onOpenChange(false)}>
               <FacebookIcon size={ICON_SIZE} round />
               <span className={labelClass}>Facebook</span>
             </FacebookShareButton>
 
-            <XShareButton url={url} title={shareTitle} className={buttonClass} onClick={() => onOpenChange(false)}>
+            <XShareButton url={url} title={shareText} className={buttonClass} onClick={() => onOpenChange(false)}>
               <XIcon size={ICON_SIZE} round />
               <span className={labelClass}>X</span>
             </XShareButton>
 
-            <LinkedinShareButton url={url} title={title} summary={description} className={buttonClass} onClick={() => onOpenChange(false)}>
+            <LinkedinShareButton url={url} title={title} summary={shareText} className={buttonClass} onClick={() => onOpenChange(false)}>
               <LinkedinIcon size={ICON_SIZE} round />
               <span className={labelClass}>LinkedIn</span>
             </LinkedinShareButton>
 
-            <TelegramShareButton url={url} title={shareTitle} className={buttonClass} onClick={() => onOpenChange(false)}>
+            <TelegramShareButton url={url} title={shareText} className={buttonClass} onClick={() => onOpenChange(false)}>
               <TelegramIcon size={ICON_SIZE} round />
               <span className={labelClass}>Telegram</span>
             </TelegramShareButton>
 
-            <RedditShareButton url={url} title={title} className={buttonClass} onClick={() => onOpenChange(false)}>
+            <RedditShareButton url={url} title={shareText} className={buttonClass} onClick={() => onOpenChange(false)}>
               <RedditIcon size={ICON_SIZE} round />
               <span className={labelClass}>Reddit</span>
             </RedditShareButton>
